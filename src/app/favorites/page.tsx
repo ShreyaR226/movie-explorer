@@ -69,7 +69,7 @@ export default function FavoritesPage() {
     movie.id && self.findIndex(m => m.id === movie.id) === index
   );
 
-  const getUniqueKey = (movie: any, index: number) => {
+  const getUniqueKey = (movie: { id: number }, index: number) => {
     return `favorite-${movie.id}-${index}`;
   };
 

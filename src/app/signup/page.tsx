@@ -47,9 +47,10 @@ export default function SignupPage() {
       } else {
         setError('Signup failed. Please try again.');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      if (err.message && err.message.includes('duplicate key error')) {
+      const error = err as Error;
+      if (error.message && error.message.includes('duplicate key error')) {
         setError('An account with this email already exists.');
       } else {
         setError('Something went wrong. Please try again.');

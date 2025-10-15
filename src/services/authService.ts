@@ -1,7 +1,11 @@
-import bcrypt from 'bcryptjs';
 import { Movie as MovieType } from '@/types/movie';
 
-const callAuthAPI = async (action: string, data: any) => {
+interface CallAuthAPIParams {
+  action: string;
+  data: Record<string, unknown>;
+}
+
+const callAuthAPI = async ({ action, data }: CallAuthAPIParams) => {
   console.log('Calling auth API:', action, data);
   
   const response = await fetch('/api/auth', {
@@ -25,8 +29,8 @@ const callAuthAPI = async (action: string, data: any) => {
 
 export const registerUser = async (name: string, email: string, password: string) => {
   try {
-    return await callAuthAPI('register', { name, email, password });
-  } catch (error: any) {
+    return await callAuthAPI({ action: 'register', data: { name, email, password } });
+  } catch (error) {
     console.error('Registration error:', error);
     throw error;
   }
@@ -34,7 +38,7 @@ export const registerUser = async (name: string, email: string, password: string
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    return await callAuthAPI('login', { email, password });
+    return await callAuthAPI({ action: 'login', data: { email, password } });
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -51,7 +55,7 @@ export const addFavorite = async (userId: string, movie: MovieType) => {
       throw new Error('Valid movie object is required');
     }
     
-    return await callAuthAPI('addFavorite', { userId, movie });
+    return await callAuthAPI({ action: 'addFavorite', data: { userId, movie } });
   } catch (error) {
     console.error('Add favorite error:', error);
     throw error;
@@ -68,7 +72,7 @@ export const removeFavorite = async (userId: string, movieId: number) => {
       throw new Error('Movie ID is required');
     }
     
-    return await callAuthAPI('removeFavorite', { userId, movieId });
+    return await callAuthAPI({ action: 'removeFavorite', data: { userId, movieId } });
   } catch (error) {
     console.error('Remove favorite error:', error);
     throw error;
@@ -81,7 +85,7 @@ export const getUserFavorites = async (userId: string) => {
       throw new Error('User ID is required');
     }
     
-    return await callAuthAPI('getUserFavorites', { userId });
+    return await callAuthAPI({ action: 'getUserFavorites', data: { userId } });
   } catch (error) {
     console.error('Get favorites error:', error);
     throw error;

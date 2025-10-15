@@ -104,10 +104,6 @@ export default function MovieDetailPage({
 		? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
 		: "/placeholder-image.png";
 
-	const backdropUrl = movie.backdrop_path
-		? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-		: "/placeholder-backdrop.jpg";
-
 	const releaseYear = movie.release_date
 		? new Date(movie.release_date).getFullYear()
 		: null;
@@ -188,7 +184,7 @@ export default function MovieDetailPage({
 
 					{movie.tagline && (
 						<p className="text-xl italic text-gray-700 mb-6">
-							"{movie.tagline}"
+							&quot;{movie.tagline}&quot;
 						</p>
 					)}
 

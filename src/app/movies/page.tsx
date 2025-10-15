@@ -5,9 +5,10 @@ import MovieCard from '@/components/MovieCard';
 import MovieCardSkeleton from '@/components/MovieCardSkeleton';
 import { searchMovies, fetchPopularMovies } from '@/services/tmdbService';
 import { useAuth } from '@/contexts/AuthContext';
+import { Movie } from '@/types/movie';
 
 export default function MoviesPage() {
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -50,12 +51,14 @@ export default function MoviesPage() {
     }
   }, [debouncedSearchQuery, isAuthenticated]);
 
+  // Load movies when page or search query changes
   useEffect(() => {
     if (isAuthenticated) {
       loadMovies(page);
     }
-  }, [page, loadMovies]);
+  }, [page, loadMovies, isAuthenticated]);
 
+  // Infinite scroll
   useEffect(() => {
     observer.current = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && hasMore && !loading) {
@@ -76,10 +79,11 @@ export default function MoviesPage() {
     };
   }, [hasMore, loading, page]);
 
+  // Reset and load first page when search query changes
   useEffect(() => {
     setPage(1);
     loadMovies(1);
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, loadMovies]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -91,7 +95,7 @@ export default function MoviesPage() {
 
   const pageTitle = useMemo(() => {
     if (debouncedSearchQuery) {
-      return `Search Results for "${debouncedSearchQuery}"`;
+      return `Search Results for &quot;${debouncedSearchQuery}&quot;`;
     }
     return 'Popular Movies';
   }, [debouncedSearchQuery]);
@@ -168,7 +172,7 @@ export default function MoviesPage() {
       
       {!hasMore && movies.length > 0 && (
         <div className="text-center text-gray-500 mt-8">
-          You've reached the end of the list
+          You&apos;ve reached the end of the list
         </div>
       )}
     </div>

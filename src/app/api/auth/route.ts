@@ -4,39 +4,81 @@ import Movie from '@/models/Movie';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 
+// Define a basic movie interface for type safety
+interface MovieData {
+  id: number;
+  title: string;
+  overview: string;
+  release_date: string;
+  vote_average: number;
+  poster_path: string | null;
+  backdrop_path: string | null;
+}
+
+interface BaseRequestData {
+  action: string;
+}
+
+interface RegisterData extends BaseRequestData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface LoginData extends BaseRequestData {
+  email: string;
+  password: string;
+}
+
+interface AddFavoriteData extends BaseRequestData {
+  userId: string;
+  movie: MovieData;
+}
+
+interface RemoveFavoriteData extends BaseRequestData {
+  userId: string;
+  movieId: number;
+}
+
+interface GetUserFavoritesData extends BaseRequestData {
+  userId: string;
+}
+
+type RequestData = BaseRequestData | RegisterData | LoginData | AddFavoriteData | RemoveFavoriteData | GetUserFavoritesData;
+
 export async function POST(request: Request) {
   try {
-    const { action, ...data } = await request.json();
+    const data = await request.json() as RequestData;
     
     await connectToDatabase();
     
-    switch (action) {
+    switch (data.action) {
       case 'register':
-        return await registerUser(data);
+        return await registerUser(data as RegisterData);
       case 'login':
-        return await loginUser(data);
+        return await loginUser(data as LoginData);
       case 'addFavorite':
-        return await addFavorite(data);
+        return await addFavorite(data as AddFavoriteData);
       case 'removeFavorite':
-        return await removeFavorite(data);
+        return await removeFavorite(data as RemoveFavoriteData);
       case 'getUserFavorites':
-        return await getUserFavorites(data);
+        return await getUserFavorites(data as GetUserFavoritesData);
       default:
         return NextResponse.json(
           { error: 'Invalid action' },
           { status: 400 }
         );
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: error.message || 'An unexpected error occurred' },
+      { error: (error as Error).message || 'An unexpected error occurred' },
       { status: 500 }
     );
   }
 }
 
-async function registerUser({ name, email, password }: { name: string; email: string; password: string }) {
+async function registerUser({ name, email, password }: RegisterData) {
   try {
     const existingUser = await User!.findOne({ email });
     if (existingUser) {
@@ -61,9 +103,9 @@ async function registerUser({ name, email, password }: { name: string; email: st
       name: user.name,
       email: user.email,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
-    if (error.code === 11000) {
+    if ((error as { code?: number }).code === 11000) {
       return NextResponse.json(
         { error: 'User already exists with this email' },
         { status: 400 }
@@ -73,7 +115,7 @@ async function registerUser({ name, email, password }: { name: string; email: st
   }
 }
 
-async function loginUser({ email, password }: { email: string; password: string }) {
+async function loginUser({ email, password }: LoginData) {
   try {
     const user = await User!.findOne({ email });
     if (!user) {
@@ -102,7 +144,7 @@ async function loginUser({ email, password }: { email: string; password: string 
   }
 }
 
-async function addFavorite({ userId, movie }: { userId: string; movie: any }) {
+async function addFavorite({ userId, movie }: AddFavoriteData) {
   try {
     console.log('Adding favorite for user:', userId);
     console.log('Movie data:', movie);
@@ -169,7 +211,7 @@ async function addFavorite({ userId, movie }: { userId: string; movie: any }) {
   }
 }
 
-async function removeFavorite({ userId, movieId }: { userId: string; movieId: number }) {
+async function removeFavorite({ userId, movieId }: RemoveFavoriteData) {
   try {
     console.log('Removing favorite for user:', userId);
     console.log('Movie ID:', movieId);
@@ -195,7 +237,7 @@ async function removeFavorite({ userId, movieId }: { userId: string; movieId: nu
     console.log('User favorites before:', user.favorites);
     
     user.favorites = user.favorites.filter(
-      (fav: any) => fav.toString() !== movie._id.toString()
+      (fav: unknown) => (fav as { toString(): string }).toString() !== movie._id.toString()
     );
     
     await user.save();
@@ -209,7 +251,7 @@ async function removeFavorite({ userId, movieId }: { userId: string; movieId: nu
   }
 }
 
-async function getUserFavorites({ userId }: { userId: string }) {
+async function getUserFavorites({ userId }: GetUserFavoritesData) {
   try {
     console.log('Getting favorites for user:', userId);
     
@@ -224,7 +266,7 @@ async function getUserFavorites({ userId }: { userId: string }) {
     
     console.log('User favorites:', user.favorites);
     
-    const mappedFavorites = user.favorites.map((movie: any) => ({
+    const mappedFavorites = user.favorites.map((movie: {[key: string]: unknown}) => ({
       id: movie.tmdbId,
       title: movie.title,
       overview: movie.overview,
