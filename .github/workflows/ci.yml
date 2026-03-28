@@ -22,7 +22,8 @@ jobs:
         run: |
          docker build \
          --build-arg NEXT_PUBLIC_TMDB_API_KEY=${{ secrets.TMDB_API_KEY }} \
-         -t ${{ secrets.DOCKER_USERNAME }}/movie-explorer .
+         -t ${{ secrets.DOCKER_USERNAME }}/movie-explorer \ 
+         .
 
       - name: Push to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movie-explorer
